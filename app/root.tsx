@@ -1,0 +1,98 @@
+import {
+  data,
+  Links,
+  Meta,
+  Outlet,
+  Scripts,
+  ScrollRestoration,
+  useLoaderData,
+  } from "react-router";
+import { useEffect } from "react";
+import { rootAuthLoader } from "@clerk/react-router/ssr.server";
+import { ClerkProvider } from '@clerk/react-router'
+import { getToast } from "remix-toast";
+import type { Route } from "./+types/root";
+import "./app.css";
+import { getEnv } from "./data/env.server";
+import { Toaster,toast as notify } from "sonner";
+import { GeneralErrorBoundary } from "./components/ErrorBoundary";
+
+export const links: Route.LinksFunction = () => [
+  { rel: "preconnect", href: "https://fonts.googleapis.com" },
+  {
+    rel: "preconnect",
+    href: "https://fonts.gstatic.com",
+    crossOrigin: "anonymous",
+  },
+  {
+    rel: "stylesheet",
+    href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
+  },
+];
+
+export async function loader(args: Route.LoaderArgs) {
+  return rootAuthLoader(args, async ({ request}) => {
+    const { sessionId, userId, getToken } = request.auth;
+    const { toast, headers: toastHeaders } = await getToast(request);
+
+    return data({
+      toast,
+      ENV: getEnv(),
+    }, {
+      headers: toastHeaders,
+    });
+  });
+}
+
+export function Layout({ children }: { children: React.ReactNode }) {
+  const data = useLoaderData<typeof loader>();
+  const env = data.ENV;
+
+  // Hook to show the toasts
+  useEffect(() => {
+    if (data.toast?.type === "error") {
+      notify.error(data.toast.message);
+    }
+    if (data.toast?.type === "success") {
+      notify.success(data.toast.message);
+    }
+  }, [data.toast]);
+
+  return (
+    <html lang="en">
+      <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <Meta />
+        <Links />
+      </head>
+      <body>
+        {children}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.ENV = ${JSON.stringify(env)}`,
+          }}
+        />
+        <Toaster closeButton />
+        <ScrollRestoration />
+        <Scripts />
+      </body>
+    </html>
+  );
+}
+
+export default function App({ loaderData }: Route.ComponentProps) {
+  return (
+    <ClerkProvider
+      loaderData={loaderData}
+      signUpFallbackRedirectUrl="/"
+      signInFallbackRedirectUrl="/"
+    >
+      <main>
+        <Outlet />
+      </main>
+    </ClerkProvider>
+  );
+}
+
+export const ErrorBoundary = GeneralErrorBoundary
