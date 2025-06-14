@@ -22,7 +22,7 @@ export async function getClientSessionSecret(
   user: typeof UserTable.$inferSelect,
   coupon?: { discountPercentage: number; couponId: string }
 ) {
-  const return_url = `http://localhost:5173/products/${product.id}/purchase/success`;
+  const return_url = `${process.env.SERVER_URL}/products/${product.id}/purchase/success`;
   const payment = await client.payments.create({
     billing: {
       city: "",
