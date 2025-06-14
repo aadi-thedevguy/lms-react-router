@@ -14,7 +14,7 @@ type WebhookPayload = {
   data: Payment;
 };
 
-const webhook = new Webhook(process.env.STRIPE_WEBHOOK_SECRET);
+const webhook = new Webhook(process.env.PAYMENT_WEBHOOK_SECRET);
 
 export async function action({ request }: Route.ActionArgs) {
   console.log("🎯 Webhook Request Received:", new Date().toISOString());

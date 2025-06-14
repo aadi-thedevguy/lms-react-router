@@ -2,7 +2,7 @@ import { ProductTable, UserTable } from "~/drizzle/schema";
 import DodoPayments from "dodopayments";
 
 export const client = new DodoPayments({
-  bearerToken: process.env.STRIPE_SECRET_KEY,
+  bearerToken: process.env.PAYMENT_SECRET_KEY,
   environment: "test_mode",
 });
 
